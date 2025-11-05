@@ -1,11 +1,15 @@
-async function handleRequest(request) {
+export async function onRequest({ request }) {
   const parsedUrl = new URL(request.url);
-  const targetUrl = "https://esraerolseksi.global.ssl.fastly.net" + parsedUrl.pathname.replace("/stream", "") + parsedUrl.search;
+
+  // Cloudflare Pages domain’inde "/hls" altındaki isteği kırpıyoruz
+  const targetUrl = "https://esraerolseksi.global.ssl.fastly.net" +
+    parsedUrl.pathname.replace("/hls", "") +
+    parsedUrl.search;
 
   const response = await fetch(targetUrl, {
     cf: {
       cacheEverything: true,
-      cacheTtl: 360  // Cloudflare cache TTLsdsdsnsd
+      cacheTtl: 360
     }
   });
 
@@ -13,15 +17,8 @@ async function handleRequest(request) {
   newHeaders.delete("set-cookie");
   newHeaders.set("Access-Control-Allow-Origin", "*");
 
-  // Fastly için Cache-Control başlığını set etsdsdfsdfwsdsd
-
-  
   return new Response(response.body, {
     status: response.status,
     headers: newHeaders
   });
 }
-
-addEventListener("fetch", event => {
-  event.respondWith(handleRequest(event.request));
-});
