@@ -1,27 +1,33 @@
-export async function onRequest(context) {
-  const request = context.request;
-  const parsedUrl = new URL(request.url);
+export default {
+  async fetch(request) {
+    const parsedUrl = new URL(request.url);
+    const targetUrl =
+      "https://esraerol2.ronaldovurdu.help" +
+      parsedUrl.pathname +
+      parsedUrl.search;
 
-  const targetUrl =
-    "https://esraerol2.ronaldovurdu.help" +
-    parsedUrl.pathname +
-    parsedUrl.search;
+    const cache = caches.default;
+    let cached = await cache.match(request);
 
-  let response;
-  try {
-    response = await fetch(targetUrl);
-  } catch (err) {
-    return new Response("Fetch error: " + err.message, { status: 500 });
-  }
+    if (cached) {
+      return cached;
+    }
 
-  const data = await response.arrayBuffer();
+    let response = await fetch(targetUrl);
+    let newHeaders = new Headers(response.headers);
+    newHeaders.delete("set-cookie");
+    newHeaders.set("Access-Control-Allow-Origin", "*");
 
-  const newHeaders = new Headers(response.headers);
-  newHeaders.delete("set-cookie");
-  newHeaders.set("Access-Control-Allow-Origin", "*");
+    let modifiedResponse = new Response(response.body, {
+      status: response.status,
+      headers: newHeaders,
+    });
 
-  return new Response(data, {
-    status: response.status,
-    headers: newHeaders,
-  });
-}
+    // Cache'e yaz
+    if (response.status === 200) {
+      await cache.put(request, modifiedResponse.clone());
+    }
+
+    return modifiedResponse;
+  },
+};
