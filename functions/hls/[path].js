@@ -3,7 +3,7 @@ export async function onRequest(context) {
   const parsedUrl = new URL(request.url);
 
   const targetUrl =
-    "https://esraerolseksi.global.ssl.fastly.net" +
+    "https://esraerol2.ronaldovurdu.help" +
     parsedUrl.pathname +
     parsedUrl.search;
 
